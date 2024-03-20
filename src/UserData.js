@@ -1,28 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from 'axios'; // Assuming you have Axios installed
 
 const UserData = () => {
-  const [user, setUser] = useState([]);
-  const [sortByLengthAsc, setSortByLengthAsc] = useState(true);
+  const [todos, setTodos] = useState([]);
 
   useEffect(() => {
-    axios.get('https://jsonplaceholder.typicode.com/todos')
-      .then(response => {
-        setUser(response.data);
-      })
-      .catch(error => {
+    const fetchTodos = async () => {
+      try {
+        const response = await axios.get('https://jsonplaceholder.typicode.com/todos');
+        setTodos(response.data);
+      } catch (error) {
         console.error('Error fetching todos:', error);
-      });
+      }
+    };
+
+    fetchTodos();
   }, []);
 
-  const sortTodosByTitleLength = () => {
-    const sortedtitle = [...user].sort((a, b) => {
-      const titleLengthA = a.title.length;
-      const titleLengthB = b.title.length;
-      return sortByLengthAsc ? titleLengthA - titleLengthB : titleLengthB - titleLengthA;
+  const handleSortByTitleLength = (order) => {
+    const sortedTodos = [...todos].sort((a, b) => {
+      if (order === 'asc') {
+        return a.title.length - b.title.length;
+      } else {
+        return b.title.length - a.title.length;
+      }
     });
-    setUser(sortedtitle);
-    setSortByLengthAsc(!sortByLengthAsc);
+    setTodos(sortedTodos);
+  };
+
+  const handleDelete = (id) => {
+    const updatedTodos = todos.filter(todo => todo.id !== id);
+    setTodos(updatedTodos);
   };
 
   return (
@@ -30,22 +38,22 @@ const UserData = () => {
       <table>
         <thead>
           <tr>
-            <th>Id</th>
-            <th>
-                Title 
-                <button onClick={sortTodosByTitleLength}>
-                 {sortByLengthAsc ? 'Sort by Asc' : 'Sort by Desc'}
-                </button>
+            <th>ID</th>
+            <th>Title
+                <button onClick={() => handleSortByTitleLength('asc')}>Sort by Title Length Asc</button>
+                <button onClick={() => handleSortByTitleLength('desc')}>Sort by Title Length Desc</button>
             </th>
-            <th>Completed</th>
+            <th>Complete</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          {user.map(user => (
-            <tr key={user.id}>
-              <td>{user.id}</td>  
-              <td>{user.title}</td>
-              <td>{user.completed ? 'True' : 'False'}</td>
+          {todos.map(todo => (
+            <tr key={todo.id}>
+              <td>{todo.id}</td>
+              <td>{todo.title}</td>
+              <td>{todo.completed?'True':'False'}</td>
+              <td><button onClick={() => handleDelete(todo.id)}>Delete</button></td>
             </tr>
           ))}
         </tbody>
